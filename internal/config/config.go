@@ -64,5 +64,35 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("unable to decode into struct: %w", err)
 
 	}
+
 	return &cfg, nil
+}
+
+func (c *Config) Validate() error {
+	if c.ServerPort <= 0 || c.ServerPort > 65535 {
+		return fmt.Errorf("invalid server port: %d", c.ServerPort)
+	}
+
+	if c.Database.Host == "" {
+		return fmt.Errorf("db host is required")
+	}
+
+	if c.Database.Port <= 0 || c.Database.Port > 65535 {
+		return fmt.Errorf("invalid db port: %d", c.Database.Port)
+	}
+
+	if c.Database.User == "" {
+		return fmt.Errorf("db user is required")
+	}
+
+	if c.Database.DBName == "" {
+		return fmt.Errorf("db name is required")
+	}
+
+	validEnvs := map[string]bool{"development": true, "staging": true, "production": true}
+	if !validEnvs[c.Environment] {
+		return fmt.Errorf("invalid environment: %s (must be development, staging or production)", c.Environment)
+	}
+
+	return nil
 }
