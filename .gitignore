@@ -1,0 +1,158 @@
+# Binaries and compiled output
+/bin/
+/*.exe
+/*.exe~
+/*.dll
+/*.so
+/*.dylib
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Dependency directories
+/vendor/
+/node_modules/  # if you have any frontend assets
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.vscode/settings.json
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dataSources.xml
+.idea/sqlDataSources.xml
+.idea/dynamic.xml
+.idea/*.iml
+.project
+.classpath
+.settings/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Go specific
+*.cover
+cover.out
+coverage.html
+coverage.out
+*.coverprofile
+*.test
+*.prof
+
+# Environment and config files
+.env
+.env.*
+!.env.example
+.env.local
+.env.production
+.env.staging
+.env.development
+config.yaml
+config.*.yaml
+!config.example.yaml
+config.yml
+config.*.yml
+!config.example.yml
+*.env
+secrets.yaml
+secrets.yml
+docker-compose.override.yml
+
+# Database migrations backup
+/migrations/*.backup
+
+# Docker
+.dockerignore
+*.dockerignore
+docker-compose.local.yml
+docker-compose.override.yml
+.docker/
+
+# Application specific
+/tmp
+/logs
+/*.log
+/data/
+/uploads/
+/temp/
+/public/uploads/
+/storage/
+*.db
+*.sqlite
+*.sqlite3
+
+# Test coverage and temp files
+coverage/
+coverage.txt
+*.tmp
+*.temp
+*.cache
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.keystore
+*.jks
+
+# Backups
+*.bak
+*.backup
+*.old
+*.orig
+
+# Compiled Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Swagger docs 
+/swagger/docs.go
+/swagger/swagger.yaml
+/swagger/swagger.json
+docs/
+
+# Local history
+.history/
+.hg/
+.svn/
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+*.db
+
+# Debug files
+debug
+debug.test
+
+# Temporary build files
+/build/
+/dist/
+/output/
