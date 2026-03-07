@@ -44,20 +44,20 @@ func Load() (*Config, error) {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("error reading config file: %w", err)
 		}
-
-		// merge with environment specific config
-		env := v.GetString("environment")
-		if env == "" {
-			env = "development"
-		}
-		v.SetConfigName("config." + env)
-		if err := v.MergeInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-				return nil, fmt.Errorf("error reading env config file: %w", err)
-			}
-		}
-
 	}
+
+	// merge with environment specific config
+	env := v.GetString("environment")
+	if env == "" {
+		env = "development"
+	}
+	v.SetConfigName("config." + env)
+	if err := v.MergeInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, fmt.Errorf("error reading env config file: %w", err)
+		}
+	}
+
 	// and then unmarshal into Config struct [we cant use them in their format yet]
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
