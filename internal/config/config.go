@@ -3,8 +3,11 @@ package config
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Config struct {
@@ -95,4 +98,31 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
+}
+
+// OpenDB creates a gorm db conn using the config
+func (c *Config) OpenDB() (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", c.Database.Host, c.Database.Port, c.Database.User, c.Database.Password, c.Database.DBName, c.Database.SSLMode)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		// i'll add gorm loggin here
+		SkipDefaultTransaction: true,
+		PrepareStmt:            true,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to db: %w", err)
+	}
+
+	// get the sql.DB obj to config the conn pool
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
+	}
+
+	sqlDB.SetMaxOpenConns(25)
+	sqlDB.SetMaxIdleConns(25)
+	sqlDB.SetConnMaxLifetime(5 * time.Minute)
+
+	return db, nil
 }
