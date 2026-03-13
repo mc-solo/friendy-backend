@@ -2,9 +2,13 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Config struct {
@@ -33,15 +37,20 @@ func Load() (*Config, error) {
 	v.SetConfigType("yaml")
 	v.AddConfigPath(".")
 	v.AddConfigPath("./config")
+	v.AddConfigPath("..")
+	v.AddConfigPath("../config")
+	v.AddConfigPath("../internal/config")
+	v.AddConfigPath("../../internal/config")
 
 	// defaults
 	v.SetDefault("environment", "development")
 	v.SetDefault("server_port", 8000)
 
-	// read base config
+	/// read base config
 	if err := v.ReadInConfig(); err != nil {
-		// this is if the config file doesnt exist, we'll rely on to env vars and defaults
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			log.Println("Warning: base config file not found, using defaults and environment variables")
+		} else {
 			return nil, fmt.Errorf("error reading config file: %w", err)
 		}
 	}
@@ -69,9 +78,9 @@ func Load() (*Config, error) {
 }
 
 func (c *Config) Validate() error {
-	if c.ServerPort <= 0 || c.ServerPort > 65535 {
-		return fmt.Errorf("invalid server port: %d", c.ServerPort)
-	}
+	// if c.ServerPort <= 0 || c.ServerPort > 65535 {
+	// 	return fmt.Errorf("invalid server port: %d", c.ServerPort)
+	// }
 
 	if c.Database.Host == "" {
 		return fmt.Errorf("db host is required")
@@ -95,4 +104,31 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
+}
+
+// OpenDB creates a gorm db conn using the config
+func (c *Config) OpenDB() (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", c.Database.Host, c.Database.Port, c.Database.User, c.Database.Password, c.Database.DBName, c.Database.SSLMode)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		// i'll add gorm loggin here
+		SkipDefaultTransaction: true,
+		PrepareStmt:            true,
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to db: %w", err)
+	}
+
+	// get the sql.DB obj to config the conn pool
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
+	}
+
+	sqlDB.SetMaxOpenConns(25)
+	sqlDB.SetMaxIdleConns(25)
+	sqlDB.SetConnMaxLifetime(5 * time.Minute)
+
+	return db, nil
 }
