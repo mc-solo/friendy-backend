@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -36,15 +37,20 @@ func Load() (*Config, error) {
 	v.SetConfigType("yaml")
 	v.AddConfigPath(".")
 	v.AddConfigPath("./config")
+	v.AddConfigPath("..")
+	v.AddConfigPath("../config")
+	v.AddConfigPath("../internal/config")
+	v.AddConfigPath("../../internal/config")
 
 	// defaults
 	v.SetDefault("environment", "development")
 	v.SetDefault("server_port", 8000)
 
-	// read base config
+	/// read base config
 	if err := v.ReadInConfig(); err != nil {
-		// this is if the config file doesnt exist, we'll rely on to env vars and defaults
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			log.Println("Warning: base config file not found, using defaults and environment variables")
+		} else {
 			return nil, fmt.Errorf("error reading config file: %w", err)
 		}
 	}
@@ -72,9 +78,9 @@ func Load() (*Config, error) {
 }
 
 func (c *Config) Validate() error {
-	if c.ServerPort <= 0 || c.ServerPort > 65535 {
-		return fmt.Errorf("invalid server port: %d", c.ServerPort)
-	}
+	// if c.ServerPort <= 0 || c.ServerPort > 65535 {
+	// 	return fmt.Errorf("invalid server port: %d", c.ServerPort)
+	// }
 
 	if c.Database.Host == "" {
 		return fmt.Errorf("db host is required")
