@@ -1,4 +1,4 @@
-package database
+package models
 
 import (
 	"time"
@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	ID           uuid.UUID  `gorm:"type:uuid;primary_key;default:gen_random_uuid()" json:"id"`
+	ID           uuid.UUID  `gorm:"type:uuid;primarykey;default:gen_random_uuid()" json:"id"`
 	Email        string     `gorm:"size:255;uniqueIndex;not null" json:"email"`
 	Username     string     `gorm:"size:25;column:username;uniqueIndex" json:"username"`
 	PasswordHash string     `gorm:"column:password;not null" json:"-"`
@@ -19,6 +19,7 @@ type User struct {
 
 	// relations
 	Preferences *UserPreference `gorm:"foreignKey:UserID" json:"preferences,omitempty"`
+	Profile     *UserProfile    `gorm:"foreignKey:UserID" json:"user_profile,omitempty"`
 }
 
 func (User) TableName() string {
