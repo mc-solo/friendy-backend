@@ -33,14 +33,8 @@ func Load() (*Config, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 
-	v.SetConfigName("config")
-	v.SetConfigType("yaml")
 	v.AddConfigPath(".")
-	v.AddConfigPath("./config")
-	v.AddConfigPath("..")
-	v.AddConfigPath("../config")
-	v.AddConfigPath("../internal/config")
-	v.AddConfigPath("../../internal/config")
+	v.AddConfigPath("./internal/config")
 
 	// defaults
 	v.SetDefault("environment", "development")
@@ -78,9 +72,9 @@ func Load() (*Config, error) {
 }
 
 func (c *Config) Validate() error {
-	// if c.ServerPort <= 0 || c.ServerPort > 65535 {
-	// 	return fmt.Errorf("invalid server port: %d", c.ServerPort)
-	// }
+	if c.ServerPort <= 0 || c.ServerPort > 65535 {
+		return fmt.Errorf("invalid server port: %d", c.ServerPort)
+	}
 
 	if c.Database.Host == "" {
 		return fmt.Errorf("db host is required")
