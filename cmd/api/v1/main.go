@@ -44,7 +44,7 @@ func main() {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
+		w.Write([]byte("healthy"))
 
 	}
 
