@@ -17,6 +17,10 @@ type User struct {
 	UpdatedAt    *time.Time `gorm:"column:updated_at;" json:"-"`
 	DeletedAt    *time.Time `gorm:"column:deleted_at;index" json:"-"`
 
+	// link to city
+	CityID *uuid.UUID `gorm:"type:uuid;index" json:"city_id"`
+	City *City `gorm:"foreignKey:CityID" json:"city,omitempty"`
+
 	// relations
 	Preferences *UserPreference `gorm:"foreignKey:UserID" json:"preferences,omitempty"`
 }
