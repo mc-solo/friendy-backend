@@ -76,8 +76,6 @@ secrets.yaml
 secrets.yml
 docker-compose.override.yml
 
-# Database migrations backup
-/migrations/*.backup
 
 # Docker
 .dockerignore
