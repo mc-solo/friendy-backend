@@ -9,7 +9,7 @@ cd friendy
 ### start the psql container
 
 ```docker
-docker-composer up -d
+docker-compose up -d
 docker ps
 ```
 
