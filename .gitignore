@@ -13,6 +13,8 @@
 *.test
 *.out
 
+!migrations/*.sql
+
 # Dependency directories
 /vendor/
 /node_modules/  # if you have any frontend assets
