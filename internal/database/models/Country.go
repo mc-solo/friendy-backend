@@ -1,17 +1,17 @@
-package database
+package models
 
 import (
-	uuid "github.com/google/uuid"
 	"time"
+
+	uuid "github.com/google/uuid"
 )
 
-
 type Country struct {
-    ID   uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-    Name string    `gorm:"unique;not null"`
+	ID   uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	Name string    `gorm:"unique;not null"`
 
-    CreatedAt time.Time
-    UpdatedAt time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (Country) TableName() string {
