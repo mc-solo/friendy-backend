@@ -11,10 +11,17 @@ import (
 	"gorm.io/gorm"
 )
 
+type JWTConfig struct {
+	Secret          string        `mapstructure:"secret"`
+	AccessTokenExp  time.Duration `mapstructure:"access_token_exp"`
+	RefreshTokenExp time.Duration `mapstructure:"refresh_token_exp"`
+}
+
 type Config struct {
 	Environment string         `mapstructure:"environment"`
 	ServerPort  int            `mapstructure:"server_port"`
 	Database    DatabaseConfig `mapstructure:"database"`
+	JWT         JWTConfig
 }
 
 type DatabaseConfig struct {
@@ -71,6 +78,7 @@ func Load() (*Config, error) {
 	return &cfg, nil
 }
 
+// TODO: update validate to check jwt secret
 func (c *Config) Validate() error {
 	if c.ServerPort <= 0 || c.ServerPort > 65535 {
 		return fmt.Errorf("invalid server port: %d", c.ServerPort)
