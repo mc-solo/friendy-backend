@@ -58,3 +58,5 @@ func GenRefreshToken(userID uuid.UUID, cfg Config) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(cfg.RefreshSecret))
 }
+
+// TODO: implement validation to those above
