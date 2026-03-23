@@ -1,6 +1,7 @@
 package token
 
 import (
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -59,4 +60,33 @@ func GenRefreshToken(userID uuid.UUID, cfg Config) (string, error) {
 	return token.SignedString([]byte(cfg.RefreshSecret))
 }
 
+// validate access token
+func ValidateAccessToken(tokenString string, cfg Config) (*Claims, error) {
+	return validateToken(tokenString, cfg.AccessSecret, AccessToken)
+}
+
+// validate refresh token
+func ValidateRefreshToken(tokenString string, cfg Config) (*Claims, error) {
+	return validateToken(tokenString, cfg.RefreshSecret, RefreshToken)
+}
+
 // TODO: implement validation to those above
+func validateToken(tokenString, secret string, expectedType TokenType) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return nil, errors.New("invalid token")
+	}
+	if claims.Type != expectedType {
+		return nil, errors.New("invalid token type")
+	}
+	return claims, nil
+}
