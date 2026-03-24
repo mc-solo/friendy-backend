@@ -89,13 +89,16 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newAccess, err := h.authService.Refresh(r.Context(), req.RefreshToken)
+	newAccess, newRefresh, err := h.authService.Refresh(r.Context(), req.RefreshToken)
 	if err != nil {
 		writeError(w, http.StatusUnauthorized, "invalid refresh token")
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]string{"access_token": newAccess})
+	writeJSON(w, http.StatusOK, map[string]string{
+		"access_token":  newAccess,
+		"refresh_token": newRefresh,
+	})
 }
 
 func writeError(w http.ResponseWriter, status int, msg string) {
