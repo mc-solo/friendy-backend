@@ -2,9 +2,13 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/mc-solo/friendy/internal/database/models"
 	"github.com/mc-solo/friendy/internal/repository/store"
 	"github.com/mc-solo/friendy/internal/utils/password"
@@ -12,21 +16,33 @@ import (
 )
 
 type Service struct {
-	userStore store.UserStore
-	tokenCfg  token.Config
+	userStore         store.UserStore
+	refreshTokenStore store.RefreshTokenStore
+	tokenCfg          token.Config
 }
 
-func NewService(userStore store.UserStore, tokenCfg token.Config) *Service {
+func NewService(
+	userStore store.UserStore,
+	refreshTokenStore store.RefreshTokenStore,
+	tokenCfg token.Config,
+) *Service {
 	return &Service{
-		userStore: userStore,
-		tokenCfg:  tokenCfg,
+		userStore:         userStore,
+		refreshTokenStore: refreshTokenStore,
+		tokenCfg:          tokenCfg,
 	}
 }
 
 var (
-	ErrInvalidCredentials = errors.New("invalid email or password")
-	ErrEmailAlreadyExists = errors.New("email already registered")
+	ErrInvalidCredentials  = errors.New("invalid email or password")
+	ErrEmailAlreadyExists  = errors.New("email already registered")
+	ErrInvalidRefreshToken = errors.New("invalid refresh token")
 )
+
+func hashToken(token string) string {
+	h := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(h[:])
+}
 
 func (s *Service) Register(ctx context.Context, email, plainPassword string) (*models.User, error) {
 
@@ -60,6 +76,10 @@ func (s *Service) Login(ctx context.Context, email, plainPassword string) (acces
 		return "", "", ErrInvalidCredentials
 	}
 
+	if user == nil {
+		return "", "", ErrInvalidCredentials
+	}
+
 	if !password.Check(plainPassword, user.PasswordHash) {
 		return "", "", ErrInvalidCredentials
 	}
@@ -76,18 +96,78 @@ func (s *Service) Login(ctx context.Context, email, plainPassword string) (acces
 		return "", "", fmt.Errorf("generating refresh token: %w", err)
 	}
 
-	// TODO: store refresh token hash in DB
+	tokenHash := hashToken(refresh)
+	refreshTokenRecord := &models.RefreshToken{
+		UserID:    user.ID,
+		TokenHash: tokenHash,
+		ExpiresAt: time.Now().Add(s.tokenCfg.RefreshExpiry),
+	}
+
+	if err := s.refreshTokenStore.Create(ctx, refreshTokenRecord); err != nil {
+		return "", "", fmt.Errorf("storing refresh token: %w", err)
+	}
 
 	return access, refresh, nil
 }
 
-// TODO: i'll implement logout here once i'm done with my login/register perfectly
-func (s *Service) Refresh(ctx context.Context, refreshTokenStr string) (newAccessToken string, err error) {
+func (s *Service) Refresh(ctx context.Context, refreshTokenStr string) (newAccessToken string, newRefreshToken string, err error) {
 	claims, err := token.ValidateRefreshToken(refreshTokenStr, s.tokenCfg)
 	if err != nil {
-		return "", errors.New("invalid refresh token")
+		return "", "", ErrInvalidRefreshToken
 	}
-	// TODO: verify the refresh token matches the stored hash
 
-	return token.GenAccessToken(claims.UserID, claims.Email, s.tokenCfg)
+	tokenHash := hashToken(refreshTokenStr)
+	storedToken, err := s.refreshTokenStore.GetByTokenHash(ctx, tokenHash)
+
+	if storedToken != nil {
+		return "", "", ErrInvalidRefreshToken
+	}
+
+	if time.Now().After(storedToken.ExpiresAt) {
+		_ = s.refreshTokenStore.Delete(ctx, storedToken.ID)
+		return "", "", ErrInvalidRefreshToken
+	}
+
+	if err := s.refreshTokenStore.Delete(ctx, storedToken.ID); err != nil {
+		return "", "", fmt.Errorf("deleting old refresh token: %w", err)
+	}
+
+	newAccess, err := token.GenAccessToken(claims.UserID, claims.Email, s.tokenCfg)
+	if err != nil {
+		return "", "", fmt.Errorf("generating access token: %w", err)
+	}
+
+	newRefresh, err := token.GenRefreshToken(claims.UserID, s.tokenCfg)
+	if err != nil {
+		return "", "", fmt.Errorf("generating refresh token: %w", err)
+	}
+
+	newTokenHash := hashToken(newRefresh)
+	newRefreshRecord := &models.RefreshToken{
+		UserID:    claims.UserID,
+		TokenHash: newTokenHash,
+		ExpiresAt: time.Now().Add(s.tokenCfg.RefreshExpiry),
+	}
+
+	if err := s.refreshTokenStore.Create(ctx, newRefreshRecord); err != nil {
+		return "", "", fmt.Errorf("storing new refresh token: %w", err)
+	}
+
+	return newAccess, newRefresh, nil
+}
+
+func (s *Service) Logout(ctx context.Context, refreshTokenStr string) error {
+	tokenHash := hashToken(refreshTokenStr)
+	storedToken, err := s.refreshTokenStore.GetByTokenHash(ctx, tokenHash)
+	if err != nil {
+		return fmt.Errorf("querying refresh token: %w", err)
+	}
+	if storedToken != nil {
+		return s.refreshTokenStore.Delete(ctx, storedToken.ID)
+	}
+	return nil
+}
+
+func (s *Service) LogoutAll(ctx context.Context, userID uuid.UUID) error {
+	return s.refreshTokenStore.DeleteByUserID(ctx, userID)
 }
