@@ -8,8 +8,8 @@ import (
 
 type RefreshToken struct {
 	ID        uuid.UUID `gorm:"type:uuid;primarykey;default:gen_random_uuid()"`
-	userID    uuid.UUID `gorm:"type:uuid;not null;index"`
-	TokenHash string    `gorm:"uniqueIndex; not null"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	TokenHash string    `gorm:"uniqueIndex;not null"`
 	ExpiresAt time.Time `gorm:"not null"`
 	CreatedAt time.Time
 
@@ -17,5 +17,5 @@ type RefreshToken struct {
 }
 
 func (RefreshToken) TableName() string {
-	return "refresh_token"
+	return "refresh_tokens"
 }
