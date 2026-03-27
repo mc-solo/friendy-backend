@@ -1,19 +1,19 @@
-package http
+package health
 
 import (
 	"database/sql"
 	"net/http"
 )
 
-type HealthHandler struct {
+type Handler struct {
 	db *sql.DB
 }
 
-func NewHealthHandler(db *sql.DB) *HealthHandler {
-	return &HealthHandler{db: db}
+func NewHandler(db *sql.DB) *Handler {
+	return &Handler{db: db}
 }
 
-func (h *HealthHandler) Check(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Check(w http.ResponseWriter, r *http.Request) {
 	if err := h.db.Ping(); err != nil {
 		http.Error(w, "Database ping failed", http.StatusInternalServerError)
 		return
