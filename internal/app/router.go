@@ -4,19 +4,26 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"database/sql"
-
-	httpDelivery "github.com/mc-solo/friendy/internal/delivery/http"
+	"github.com/mc-solo/internal/service/auth"
 )
 
-func NewRouter(db *sql.DB) *chi.Mux {
+func NewRouter() *chi.Mux {
 	r := chi.NewRouter()
+
+	// global middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	// health check
-	healthHandler := httpDelivery.NewHealthHandler(db)
-	r.Get("/health", healthHandler.Check)
+	// the v1 api
+	apiRouter := r.Route("/api/v1", func(api chi.Router) {
+		authService := auth.NewService()
+		authHandler := auth.NewHandler(authService)
+
+		// mount auth routes
+		api.Route("/auth", func(authRouter chi.Router) {
+			auth.RegisterRoutes(authRouter, authHandler)
+		})
+	})
 
 	return r
 }
