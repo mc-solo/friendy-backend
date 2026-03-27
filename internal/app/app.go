@@ -17,7 +17,6 @@ import (
 	"github.com/mc-solo/friendy/internal/utils/token"
 )
 
-// app holds the core components of the application.
 type App struct {
 	Router   *chi.Mux
 	Config   *config.Config
@@ -25,38 +24,32 @@ type App struct {
 	Handlers *Handlers // defined in handlers.go
 }
 
-// New initialises the entire application.
 func New(cfg *config.Config) (*App, error) {
-	// open db conn using gorm
+	// open database
 	db, err := cfg.OpenDB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// gets *sql.DB for health checks
+	// gets *sql.DB for health check
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sql.DB from gorm: %w", err)
 	}
 
-	// repositories
-	userStore := store.NewUserStore(db)
-	refreshStore := store.NewRefreshTokenStore(db)
-	// add repositories here when you create them later
+	userStorePtr := store.NewUserStore(db)
+	refreshStorePtr := store.NewRefreshTokenStore(db)
 
-	// utilities [ adapters from adapters.go ]
-	hasher := passwordHasher{}
-
+	// token config
 	tokenCfg := token.Config{
 		AccessSecret:  cfg.JWT.Secret,
 		RefreshSecret: cfg.JWT.Secret,
 		AccessExpiry:  cfg.JWT.AccessTokenExp,
 		RefreshExpiry: cfg.JWT.RefreshTokenExp,
 	}
-	tokenMaker := &tokenMaker{cfg: tokenCfg} // from adapters.go
 
-	// services
-	authSvc := authService.NewService(userStore, refreshStore, hasher, tokenMaker)
+	// auth service
+	authSvc := authService.NewService(*userStorePtr, *refreshStorePtr, tokenCfg)
 
 	// handlers
 	healthHandler := health.NewHandler(sqlDB)
@@ -65,7 +58,7 @@ func New(cfg *config.Config) (*App, error) {
 	handlers := &Handlers{
 		Health: healthHandler,
 		Auth:   authHandler,
-		// you guys can add handlers here as you go
+		// add handlers here [like chat, verification...]
 	}
 
 	// router
@@ -79,14 +72,12 @@ func New(cfg *config.Config) (*App, error) {
 	}, nil
 }
 
-// Run starts the HTTP server.
 func (a *App) Run() error {
 	addr := fmt.Sprintf(":%d", a.Config.ServerPort)
 	log.Printf("Server starting on %s", addr)
 	return http.ListenAndServe(addr, a.Router)
 }
 
-// Close gracefully closes the db conn
 func (a *App) Close() error {
 	sqlDB, err := a.DB.DB()
 	if err != nil {
