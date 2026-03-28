@@ -104,5 +104,56 @@ graph TD
 
 ## Configuration & Infrastructure
 - **Environment Management**: Uses Viper to load configuration from `config.development.yaml` or environment variables (prefixed with `APP_`).
-- **Database Migrations**: Managed via `golang-migrate`. Sequential `.sql` files are used to version-control the schema.
 - **Local Dev**: Run `docker-compose up` to start PostgreSQL, then `air` to start the live-reloading Go server.
+
+---
+
+## Adding a New Feature: Step-by-Step
+
+Follow these steps to implement a new feature (e.g., `posts`, `comments`, `notifications`):
+
+### 1. Database Migration
+Create new migration files using the Makefile:
+```bash
+make create name=create_posts_table
+```
+Edit the generated `.up.sql` and `.down.sql` files in the `migrations/` directory, then apply them:
+```bash
+make up
+```
+
+### 2. Define the Model
+Add the GORM model for the new entity in `internal/database/models/`:
+- Create `internal/database/models/post.go`.
+
+### 3. Implement the Repository
+Define the data access interface and its GORM implementation in `internal/repository/store/`:
+- Create `internal/repository/store/post_store.go`.
+- Define `PostRepository` interface and `PostStore` struct.
+
+### 4. Implement the Service
+Add the business logic in `internal/service/`:
+- Create a new directory `internal/service/post/`.
+- Create `internal/service/post/post_service.go` containing the `Service` struct and its methods.
+
+### 5. Implement the Delivery Layer (Handlers & Routes)
+Create the HTTP handlers and route registration in `internal/delivery/http/`:
+- Create a new directory `internal/delivery/http/post/`.
+- Create `internal/delivery/http/post/handler.go` for the HTTP handlers.
+- Create `internal/delivery/http/post/routes.go` to define the routes.
+
+### 6. Wire Everything Together
+Finally, connect the new components in the application container:
+
+1.  **Update Handlers Struct**: Add the new handler to the `Handlers` struct in [internal/app/handlers.go](file:///home/mc-solo/Code/friendy-backend/internal/app/handlers.go).
+2.  **Initialize Components**: In the `New` function in [internal/app/app.go](file:///home/mc-solo/Code/friendy-backend/internal/app/app.go):
+    - Initialize the Store: `postStore := store.NewPostStore(db)`
+    - Initialize the Service: `postSvc := post.NewService(postStore)`
+    - Initialize the Handler: `postHandler := post.NewHandler(postSvc)`
+    - Assign to Handlers: `handlers.Post = postHandler`
+3.  **Register Routes**: In the `NewRouter` function in [internal/app/router.go](file:///home/mc-solo/Code/friendy-backend/internal/app/router.go), register the new routes:
+    ```go
+    api.Route("/posts", func(postRouter chi.Router) {
+        post.RegisterRoutes(postRouter, h.Post)
+    })
+    ```
