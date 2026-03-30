@@ -1,0 +1,29 @@
+{
+    "info": {
+        "_postman_id": "friendy-backend-v1-api-collection",
+        "name": "friendy backend API",
+        "description": "API collection for friendy. Includes System Health, Auth, Chat, ...and future endpoints under api/v1",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "System",
+            "item": [
+                {
+                    "name": "health check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/health",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["health"]
+                        },
+                        "description": "check if the server is alive and responding"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}
