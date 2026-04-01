@@ -5,6 +5,13 @@
         "description": "API collection for friendy. Includes System Health, Auth, Chat, ...and future endpoints under api/v1",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8000",
+            "type": "string"
+        }
+    ],
     "item": [
         {
             "name": "System",
@@ -19,9 +26,287 @@
                             "host": ["{{baseUrl}}"],
                             "path": ["health"]
                         },
-                        "description": "check if the server is alive and responding"
+                        "description": "Check if the server is alive and responding."
                     },
                     "response": []
+                }
+            ]
+        },
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "register",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"supersecret\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/register",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "auth", "register"]
+                        },
+                        "description": "Register a new user account. Returns the created user's ID and email. Returns 409 if the email is already registered."
+                    },
+                    "response": [
+                        {
+                            "name": "201 Created",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"supersecret\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/auth/register",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "auth", "register"]
+                                }
+                            },
+                            "status": "Created",
+                            "code": 201,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"email\": \"user@example.com\"\n}"
+                        },
+                        {
+                            "name": "409 Conflict - Email already registered",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"supersecret\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/auth/register",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "auth", "register"]
+                                }
+                            },
+                            "status": "Conflict",
+                            "code": 409,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"error\": \"email already registered\"\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "login",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"supersecret\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/login",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "auth", "login"]
+                        },
+                        "description": "Authenticate with email and password. Returns a short-lived access token and a long-lived refresh token. Returns 401 on invalid credentials."
+                    },
+                    "response": [
+                        {
+                            "name": "200 OK",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"supersecret\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/auth/login",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "auth", "login"]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"access_token\": \"<jwt_access_token>\",\n  \"refresh_token\": \"<jwt_refresh_token>\"\n}"
+                        },
+                        {
+                            "name": "401 Unauthorized - Invalid credentials",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"wrongpassword\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/auth/login",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "auth", "login"]
+                                }
+                            },
+                            "status": "Unauthorized",
+                            "code": 401,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"error\": \"invalid email or password\"\n}"
+                        }
+                    ]
+                },
+                {
+                    "name": "refresh token",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"refresh_token\": \"<jwt_refresh_token>\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/refresh",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "auth", "refresh"]
+                        },
+                        "description": "Exchange a valid refresh token for a new access token and a new refresh token (token rotation). The old refresh token is invalidated. Returns 401 if the token is invalid or expired."
+                    },
+                    "response": [
+                        {
+                            "name": "200 OK",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"refresh_token\": \"<jwt_refresh_token>\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/auth/refresh",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "auth", "refresh"]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"access_token\": \"<new_jwt_access_token>\",\n  \"refresh_token\": \"<new_jwt_refresh_token>\"\n}"
+                        },
+                        {
+                            "name": "401 Unauthorized - Invalid or expired refresh token",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"refresh_token\": \"<expired_or_invalid_token>\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/auth/refresh",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "auth", "refresh"]
+                                }
+                            },
+                            "status": "Unauthorized",
+                            "code": 401,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"error\": \"invalid refresh token\"\n}"
+                        }
+                    ]
                 }
             ]
         }
